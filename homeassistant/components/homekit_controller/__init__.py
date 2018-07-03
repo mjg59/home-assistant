@@ -140,7 +140,8 @@ class HKDevice():
                                                            pairing_id)
         except homekit.exception.UnavailableError:
             error_msg = "This accessory is already paired to another device. \
-                         Please reset the accessory and try again."
+                         Please unpair the accessory in the Apple Home app or \
+                         factory reset the accessory and try again."
             _configurator = self.hass.data[DOMAIN+self.hkid]
             self.configurator.notify_errors(_configurator, error_msg)
             return
