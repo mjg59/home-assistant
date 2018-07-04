@@ -68,16 +68,16 @@ def get_serial(accessory):
 class HKDevice():
     """HomeKit device."""
 
-    def __init__(self, hass, host, port, model, hkid, config_num, config):
+    def __init__(self, hass, host, port, name, hkid, config_num, config):
         """Initialise a generic HomeKit device."""
         # pylint: disable=import-error
         import homekit
 
-        _LOGGER.info("Setting up Homekit device %s", model)
+        _LOGGER.info("Setting up Homekit device %s", name)
         self.hass = hass
         self.host = host
         self.port = port
-        self.model = model
+        self.name = name
         self.hkid = hkid
         self.config_num = config_num
         self.config = config
@@ -145,7 +145,7 @@ class HKDevice():
             return
         except homekit.exception.AuthenticationError:
             error_msg = "Incorrect HomeKit code for {}. Please check it and \
-                         try again.".format(self.model)
+                         try again.".format(self.name)
             _configurator = self.hass.data[DOMAIN+self.hkid]
             self.configurator.notify_errors(_configurator, error_msg)
             return
@@ -168,9 +168,9 @@ class HKDevice():
     def configure(self):
         """Obtain the pairing code for a HomeKit device."""
         description = "Please enter the HomeKit code for your {}".format(
-            self.model)
+            self.name)
         self.hass.data[DOMAIN+self.hkid] = \
-            self.configurator.request_config(self.model,
+            self.configurator.request_config(self.name,
                                              self.device_config_callback,
                                              description=description,
                                              submit_caption="submit",
@@ -184,7 +184,7 @@ class HomeKitEntity(Entity):
 
     def __init__(self, accessory, devinfo):
         """Initialise a generic HomeKit device."""
-        self._name = accessory.model
+        self._name = accessory.name
         self._securecon = accessory.securecon
         self._aid = devinfo['aid']
         self._iid = devinfo['iid']
@@ -225,10 +225,9 @@ def setup(hass, config):
     """Set up for Homekit devices."""
     def discovery_dispatch(service, discovery_info):
         """Dispatcher for Homekit discovery events."""
-        # model, id
         host = discovery_info['host']
         port = discovery_info['port']
-        model = discovery_info['properties']['md']
+        name = discovery_info['name']
         hkid = discovery_info['properties']['id']
         config_num = int(discovery_info['properties']['c#'])
 
@@ -241,7 +240,7 @@ def setup(hass, config):
             return
 
         _LOGGER.debug('Discovered unique device %s', hkid)
-        device = HKDevice(hass, host, port, model, hkid, config_num, config)
+        device = HKDevice(hass, host, port, name, hkid, config_num, config)
         hass.data[KNOWN_DEVICES][hkid] = device
 
     hass.data[KNOWN_ACCESSORIES] = {}
